@@ -21,8 +21,6 @@
     </div>
 @endif
 
-
-
         
         <div class="mb-3">
             <label for="cin" class="form-label">CIN</label>

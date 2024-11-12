@@ -19,6 +19,7 @@
 
     <form action="{{ route('beneficiaries.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
+        
 
         <div class="mb-3">
             <label for="cin" class="form-label">CIN</label>
@@ -52,8 +53,8 @@
 
         <div class="mb-3">
             <label for="image" class="form-label">Image (optionnelle)</label>
-            <input type="file" class="form-control" id="image" name="image" accept="image/*">
-        </div>
+            <input type="file" class="form-control" id="image" name="image" accept=".jpeg,.png,.jpg,.gif">
+            </div>
         
         <button type="submit" class="btn btn-success w-100">Ajouter</button>
     </form>

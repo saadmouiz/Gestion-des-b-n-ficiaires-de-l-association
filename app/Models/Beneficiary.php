@@ -10,12 +10,12 @@ class Beneficiary extends Model
     use HasFactory;
 
     protected $fillable = [
-        'image',
+        'image_path',
         'cin',
         'nom',
         'prenom',
         'baccalaureat',
         'diplome_obtenu',
-        'pdf_path' // Ajout du champ PDF
+        'pdf_path'
     ];
 }
