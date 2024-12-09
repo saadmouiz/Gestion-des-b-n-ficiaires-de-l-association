@@ -15,6 +15,11 @@ class CreateAdminsTable extends Migration
             $table->string('password');
             $table->timestamps();
         });
+        \App\Models\Admin::create([
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+        ]);
     }
 
     public function down()

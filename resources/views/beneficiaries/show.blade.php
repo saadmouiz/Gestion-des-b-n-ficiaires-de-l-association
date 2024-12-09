@@ -11,15 +11,14 @@
         </div>
         <div class="card-body">
             <div class="row g-4">
-                <!-- Image Section -->
-                <div class="col-md-4 text-center">
-                    @if ($beneficiary->image_path)
-                        <img src="{{ asset('storage/' . $beneficiary->image_path) }}" alt="Image" class="img-fluid rounded shadow" style="max-width: 100%; height: auto;">
-                    @else
-                        <img src="https://via.placeholder.com/150" alt="Placeholder" class="img-fluid rounded shadow">
-                    @endif
-                </div>
-
+            <!-- Image Section -->
+<div class="col-md-4 text-center">
+    @if ($beneficiary->image_path && file_exists(storage_path('app/public/' . $beneficiary->image_path)))
+        <img src="{{ asset('storage/' . $beneficiary->image_path) }}" alt="Image" class="img-fluid rounded shadow" style="max-width: 100%; height: auto;">
+    @else
+        <img src="https://via.placeholder.com/150" alt="Placeholder" class="img-fluid rounded shadow">
+    @endif
+</div>
                 <!-- Info Section -->
                 <div class="col-md-8">
                     <table class="table table-striped">
@@ -47,8 +46,8 @@
                             <tr>
                                 <th scope="row" class="bg-light">Document PDF</th>
                                 <td>
-                                    @if ($beneficiary->pdf_path)
-                                        <a href="{{ asset('storage/' . $beneficiary->pdf_path) }}" target="_blank" class="btn btn-outline-primary btn-sm">Voir le PDF</a>
+                                    @if ($beneficiary->pdf_path && Storage::exists($beneficiary->pdf_path))
+                                        <a href="{{ Storage::url($beneficiary->pdf_path) }}" target="_blank" class="btn btn-outline-primary btn-sm">Voir le PDF</a>
                                     @else
                                         Aucun document disponible
                                     @endif
@@ -62,7 +61,7 @@
 
         <!-- Action Buttons -->
         <div class="card-footer text-center">
-            <a href="{{ route('beneficiaries.index') }}" class="btn btn-secondary btn-sm mx-2">Retour à la liste</a>
+            <a href="{{ route('folders.beneficiaries', ['folder' => $beneficiary->folder_id]) }}" class="btn btn-secondary btn-sm mx-2">Retour à la liste</a>
             <a href="{{ route('beneficiaries.edit', $beneficiary) }}" class="btn btn-warning btn-sm mx-2">Modifier</a>
             <form action="{{ route('beneficiaries.destroy', $beneficiary) }}" method="POST" class="d-inline">
                 @csrf

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Beneficiary;
+use App\Models\Folder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -11,135 +12,124 @@ class BeneficiaryController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-    
-        $beneficiaries = Beneficiary::when($search, function ($query, $search) {
-            $query->where('nom', 'like', "%$search%")
-                  ->orWhere('prenom', 'like', "%$search%")
-                  ->orWhere('cin', 'like', "%$search%");
-        })->get();
-    
-        return view('beneficiaries.index', compact('beneficiaries'));
+
+        $folders = Folder::with('beneficiaries')
+            ->when($search, function ($query, $search) {
+                $query->whereHas('beneficiaries', function ($query) use ($search) {
+                    $query->where('nom', 'LIKE', "%$search%")
+                          ->orWhere('prenom', 'LIKE', "%$search%")
+                          ->orWhere('cin', 'LIKE', "%$search%");
+                });
+            })
+            ->get();
+
+        return view('beneficiaries.index', compact('folders', 'search'));
     }
-    
 
     public function create()
     {
-        return view('beneficiaries.create');
+        $folders = Folder::all();
+        return view('beneficiaries.create', compact('folders'));
     }
 
     public function store(Request $request)
     {
         // Validation des données
-        $request->validate([
-            'cin' => 'required|string|max:255',
+        $validated = $request->validate([
+            'cin' => 'required|string|max:255|unique:beneficiaries,cin',
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'baccalaureat' => 'required|string|max:255',
             'diplome_obtenu' => 'required|string|max:255',
-            'pdf' => 'nullable|mimes:pdf|max:2048', // Validation du fichier PDF
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validation de l'image
+            'pdf' => 'nullable|file|mimes:pdf|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'folder_id' => 'nullable|exists:folders,id',
+            'new_folder' => 'nullable|string|max:255',
         ]);
 
-        $pdfPath = null;
-        $imagePath = null;
+        // Création d'un nouveau dossier si le champ "new_folder" est renseigné
+        if ($request->filled('new_folder')) {
+            $folder = Folder::create(['name' => $request->input('new_folder')]);
+            $validated['folder_id'] = $folder->id;
+        }
 
-        // Sauvegarde du fichier PDF, s'il existe
+        // Upload des fichiers PDF et image
         if ($request->hasFile('pdf')) {
-            $pdfPath = $request->file('pdf')->store('pdfs', 'public');
+            $validated['pdf_path'] = $request->file('pdf')->store('pdfs', 'public');
         }
 
-        // Sauvegarde de l'image, s'il existe
         if ($request->hasFile('image')) {
-            // Validation du fichier image
-            $image = $request->file('image');
-            if ($image->isValid()) {
-                $imagePath = $image->store('images', 'public'); // Sauvegarde dans 'storage/app/public/images'
-            } else {
-                return redirect()->back()->withErrors('Le fichier image n\'est pas valide.');
-            }
+            $validated['image_path'] = $request->file('image')->store('images', 'public');
         }
 
-        // Création du bénéficiaire avec l'image et PDF si présents
-        Beneficiary::create([
-            'cin' => $request->cin,
-            'nom' => $request->nom,
-            'prenom' => $request->prenom,
-            'baccalaureat' => $request->baccalaureat,
-            'diplome_obtenu' => $request->diplome_obtenu,
-            'pdf_path' => $pdfPath,
-            'image_path' => $imagePath, // Enregistrement du chemin de l'image
-        ]);
+        // Création du bénéficiaire
+        Beneficiary::create($validated);
 
-        return redirect()->route('beneficiaries.index')->with('success', 'Bénéficiaire ajouté avec succès !');
+        return redirect()->route('folders.index')->with('success', 'Bénéficiaire ajouté avec succès.');
     }
 
-    public function show($id)
+    public function show(Beneficiary $beneficiary)
     {
-        $beneficiary = Beneficiary::findOrFail($id);
         return view('beneficiaries.show', compact('beneficiary'));
     }
 
-    public function edit($id)
+    public function edit(Beneficiary $beneficiary)
     {
-        $beneficiary = Beneficiary::findOrFail($id);
-        return view('beneficiaries.edit', compact('beneficiary'));
+        $folders = Folder::all();
+        return view('beneficiaries.edit', compact('beneficiary', 'folders'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Beneficiary $beneficiary)
     {
-        $request->validate([
-            'cin' => 'required|max:255',
-            'nom' => 'required|max:255',
-            'prenom' => 'required|max:255',
-            'baccalaureat' => 'required|max:255',
-            'diplome_obtenu' => 'required|max:255',
-            'image' => 'nullable|mimes:jpeg,png,jpg,gif|max:2048', // Validation pour l'image
-        ]);
-
-        $beneficiary = Beneficiary::findOrFail($id);
-
-        // Mise à jour des données
-        $beneficiary->cin = $request->cin;
-        $beneficiary->nom = $request->nom;
-        $beneficiary->prenom = $request->prenom;
-        $beneficiary->baccalaureat = $request->baccalaureat;
-        $beneficiary->diplome_obtenu = $request->diplome_obtenu;
-
-        // Gestion du fichier image
+        $validated = $request->validate([
+            'cin' => 'required|unique:beneficiaries,cin,' . $beneficiary->id,
+            'nom' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'baccalaureat' => 'required|string|max:255',
+            'diplome_obtenu' => 'required|string|max:255',
+            'folder_id' => 'nullable|exists:folders,id',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
+            'pdf' => 'nullable|file|mimes:pdf|max:5120',
+        ]); 
+  
+        // Mise à jour de l'image si une nouvelle est uploadée
         if ($request->hasFile('image')) {
-            // Supprimer l'ancien fichier si existe
-            if ($beneficiary->image_path) {
-                Storage::disk('public')->delete($beneficiary->image_path);
+            if ($beneficiary->image_path && Storage::exists('public/' . $beneficiary->image_path)) {
+                Storage::delete('public/' . $beneficiary->image_path);
             }
-
-            // Sauvegarder le nouveau fichier
-            $image = $request->file('image');
-            if ($image->isValid()) {
-                $imagePath = $image->store('images', 'public');
-                $beneficiary->image_path = $imagePath;  // Mettre à jour l'image
-            } else {
-                return redirect()->back()->withErrors('Le fichier image n\'est pas valide.');
-            }
+            $validated['image_path'] = $request->file('image')->store('images', 'public');
         }
 
-        $beneficiary->save();
+        // Mise à jour du fichier PDF si un nouveau est uploadé
+        if ($request->hasFile('pdf')) {
+            if ($beneficiary->pdf_path && Storage::exists('public/' . $beneficiary->pdf_path)) {
+                Storage::delete('public/' . $beneficiary->pdf_path);
+            }
+            $validated['pdf_path'] = $request->file('pdf')->store('pdfs', 'public');
+        }
 
-        return redirect()->route('beneficiaries.index')->with('success', 'Bénéficiaire modifié avec succès.');
+        // Mise à jour des autres champs
+        $validated['folder_id'] = $validated['folder_id'] ?? $beneficiary->folder_id;
+
+        $beneficiary->update($validated);
+
+        return redirect()->route('beneficiaries.show', $beneficiary)->with('success', 'Bénéficiaire mis à jour avec succès.');
     }
 
     public function destroy(Beneficiary $beneficiary)
     {
         // Suppression des fichiers associés
-        if ($beneficiary->pdf_path) {
-            Storage::disk('public')->delete($beneficiary->pdf_path);
-        }
-        if ($beneficiary->image_path) {
-            Storage::disk('public')->delete($beneficiary->image_path);
+        if ($beneficiary->image_path && Storage::exists('public/' . $beneficiary->image_path)) {
+            Storage::delete('public/' . $beneficiary->image_path);
         }
 
+        if ($beneficiary->pdf_path && Storage::exists('public/' . $beneficiary->pdf_path)) {
+            Storage::delete('public/' . $beneficiary->pdf_path);
+        }
+
+        // Suppression du bénéficiaire
         $beneficiary->delete();
 
-        return redirect()->route('beneficiaries.index')->with('success', 'Bénéficiaire supprimé avec succès!');
+        return redirect()->route('folders.index')->with('success', 'Bénéficiaire supprimé avec succès.');
     }
 }
-?>

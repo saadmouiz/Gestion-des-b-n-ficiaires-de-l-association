@@ -2,66 +2,42 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BeneficiaryController;
+use App\Http\Controllers\FolderController;
 use App\Http\Controllers\AdminController;
 
-// Page d'accueil, redirige vers la liste des bénéficiaires (ou vers la page de connexion si l'administrateur n'est pas connecté)
+// Page d'accueil : redirection en fonction de l'authentification de l'admin
 Route::get('/', function () {
-    // Vérifiez si l'administrateur est connecté
-
     if (auth('admin')->check()) {
-
-        return redirect()->route('beneficiaries.index'); // Si connecté, afficher les bénéficiaires
-
+        return redirect()->route('folders.index'); // Si l'admin est connecté, rediriger vers la liste des dossiers
     } else {
-
-        return redirect()->route('admin.login'); // Sinon, rediriger vers la page de connexion
+        return redirect()->route('admin.login'); // Sinon rediriger vers la page de connexion
     }
 });
 
-
-// Routes d'authentification pour l'administrateur
+// Routes pour l'authentification administrateur
 Route::prefix('admin')->group(function () {
-    // Afficher le formulaire de connexion
-    Route::get('/login', [AdminController::class, 'showLoginForm'])->name('admin.login');
-
-
-    // Soumettre le formulaire de connexion
-    Route::post('/login', [AdminController::class, 'login'])->name('admin.login.submit');
-
-
-    // Déconnexion de l'administrateur
-    Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');
+    Route::get('/login', [AdminController::class, 'showLoginForm'])->name('admin.login'); // Formulaire de connexion
+    Route::post('/login', [AdminController::class, 'login'])->name('admin.login.submit'); // Soumettre la connexion
+    Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout'); // Déconnexion
 });
 
-
-// Protéger toutes les routes d'administration par un middleware pour s'assurer que l'administrateur est connecté
+// Routes protégées par le middleware 'auth:admin' (requiert une connexion admin)
 Route::middleware(['auth:admin'])->group(function () {
+    // Routes pour l'affichage des dossiers
+    Route::get('/folders', [FolderController::class, 'index'])->name('folders.index'); // Afficher tous les dossiers
+    Route::get('folders/create', [FolderController::class, 'create'])->name('folders.create'); // Formulaire de création d'un dossier
+    Route::post('folders', [FolderController::class, 'store'])->name('folders.store'); // Soumettre la création d'un dossier
+    
+    // Affichage des bénéficiaires d'un dossier spécifique
+    Route::get('folders/{folder}/beneficiaries', [FolderController::class, 'showBeneficiaries'])->name('folders.beneficiaries');
+    Route::get('folders/{folder}/beneficiaries', [FolderController::class, 'beneficiaries'])->name('folders.beneficiaries');
+    Route::put('/folders/{folder}', [FolderController::class, 'update'])->name('folders.update');
+   
 
-    // Liste des bénéficiaires
+// Route pour afficher le formulaire d'édition
+Route::get('/folders/{folder}/edit', [FolderController::class, 'edit'])->name('folders.edit');
+
+    Route::delete('folders/{folder}', [FolderController::class, 'destroy'])->name('folders.destroy');
+    // Routes pour gérer les bénéficiaires (CRUD)
     Route::resource('beneficiaries', BeneficiaryController::class);
-
-
-    // Afficher un bénéficiaire spécifique
-    Route::get('beneficiaries/{beneficiary}', [BeneficiaryController::class, 'show'])->name('beneficiaries.show');
-
-
-    // Formulaire de création d'un bénéficiaire
-    Route::get('beneficiaries/create', [BeneficiaryController::class, 'create'])->name('beneficiaries.create');
-
-
-    // Enregistrer un nouveau bénéficiaire
-    Route::post('beneficiaries', [BeneficiaryController::class, 'store'])->name('beneficiaries.store');
-
-
-    // Formulaire d'édition d'un bénéficiaire
-    Route::get('beneficiaries/{beneficiary}/edit', [BeneficiaryController::class, 'edit'])->name('beneficiaries.edit');
-
-
-    // Mettre à jour un bénéficiaire
-    Route::put('beneficiaries/{beneficiary}', [BeneficiaryController::class, 'update'])->name('beneficiaries.update');
-
-
-    // Supprimer un bénéficiaire
-    Route::delete('beneficiaries/{beneficiary}', [BeneficiaryController::class, 'destroy'])->name('beneficiaries.destroy');
 });
-

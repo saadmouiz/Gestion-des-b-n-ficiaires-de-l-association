@@ -21,11 +21,11 @@ class AdminController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
-        ]);
+        ]); 
 
         // Essayer de se connecter
         if (Auth::guard('admin')->attempt($request->only('email', 'password'))) {
-            return redirect()->route('beneficiaries.index'); // Rediriger vers la liste des bénéficiaires
+            return redirect()->route('folders.index'); // Rediriger vers la liste des bénéficiaires
         }
 
         return back()->withErrors(['email' => 'Email ou mot de passe incorrect.']);

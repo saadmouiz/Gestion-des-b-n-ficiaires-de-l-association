@@ -1,107 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        /* Global styles */
-        body {
-            background: linear-gradient(135deg, #6c757d, #343a40);
-            font-family: 'Roboto', sans-serif;
-            color: #fff;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+  <!-- Design by foolishdeveloper.com -->
+    <title>Association Al Amal</title>
+ 
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ asset('asset/image copy.png') }}">
+    <!--Stylesheet-->
+    <style media="screen">
+      *,
+*:before,
+*:after{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+body{
+    background-color: #7f0000; /* Rouge foncé */
+}
+.background{
+    width: 430px;
+    height: 520px;
+    position: absolute;
+    transform: translate(-50%,-50%);
+    left: 50%;
+    top: 50%;
+}
+.background .shape{
+    height: 200px;
+    width: 200px;
+    position: absolute;
+    border-radius: 50%;
+}
+.shape:first-child{
+    background: linear-gradient(
+        #ff5733,
+        #ff8c42
+    );
+    left: -80px;
+    top: -80px;
+}
+.shape:last-child{
+    background: linear-gradient(
+        to right,
+        #ff3a3a,
+        #ff7171
+    );
+    right: -30px;
+    bottom: -80px;
+}
+form{
+    height: 520px;
+    width: 400px;
+    background-color: rgba(255,255,255,0.13);
+    position: absolute;
+    transform: translate(-50%,-50%);
+    top: 50%;
+    left: 50%;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 40px rgba(255,0,0,0.6); /* Ombre rouge */
+    padding: 50px 35px;
+}
+form *{
+    font-family: 'Poppins',sans-serif;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    outline: none;
+    border: none;
+}
+form h3{
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 42px;
+    text-align: center;
+}
 
-        .login-box {
-            width: 100%;
-            max-width: 400px;
-            background-color: #2c3e50;
-            border-radius: 15px;
-            padding: 2rem;
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-            text-align: center;
-        }
+label{
+    display: block;
+    margin-top: 30px;
+    font-size: 16px;
+    font-weight: 500;
+}
+input{
+    display: block;
+    height: 50px;
+    width: 100%;
+    background-color: rgba(255,255,255,0.07);
+    border-radius: 3px;
+    padding: 0 10px;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 300;
+}
+::placeholder{
+    color: #f7d4d4; /* Placeholder avec une teinte rouge pâle */
+}
+button{
+    margin-top: 50px;
+    width: 100%;
+    background-color: #ff4c4c; /* Bouton rouge */
+    color: #ffffff;
+    padding: 15px 0;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+button:hover {
+    background-color: #ff6b6b; /* Rouge légèrement plus clair au survol */
+}
+.social{
+  margin-top: 30px;
+  display: flex;
+}
+.social div{
+  background: red;
+  width: 150px;
+  border-radius: 3px;
+  padding: 5px 10px 10px 5px;
+  background-color: rgba(255,255,255,0.27);
+  color: #eaf0fb;
+  text-align: center;
+}
+.social div:hover{
+  background-color: rgba(255,255,255,0.47);
+}
+.social .fb{
+  margin-left: 25px;
+}
+.social i{
+  margin-right: 4px;
+}
 
-        .login-box h2 {
-            color: #fff;
-            margin-bottom: 1.5rem;
-            font-weight: bold;
-            font-size: 2rem;
-        }
-
-        .login-box .form-control {
-            background-color: #34495e;
-            border: 1px solid #34495e;
-            color: #fff;
-            border-radius: 10px;
-            font-size: 16px;
-            padding: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .login-box .form-control:focus {
-            border-color: #1abc9c;
-            box-shadow: 0 0 8px rgba(26, 188, 156, 0.6);
-        }
-
-        .login-box .btn-primary {
-            background-color: #1abc9c;
-            border-color: #1abc9c;
-            border-radius: 10px;
-            padding: 12px;
-            font-size: 18px;
-            transition: background-color 0.3s ease;
-        }
-
-        .login-box .btn-primary:hover {
-            background-color: #16a085;
-            border-color: #16a085;
-            cursor: pointer;
-        }
-
-        .forgot-password {
-            color: #ccc;
-            font-size: 14px;
-            text-decoration: none;
-            margin-top: 1rem;
-            display: inline-block;
-        }
-
-        .forgot-password:hover {
-            color: #1abc9c;
-            text-decoration: underline;
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
     </style>
 </head>
 <body>
-
-    <div class="login-box">
-        <h2>Connexion Admin</h2>
-        <form action="{{ route('admin.login.submit') }}" method="POST">
-            @csrf
-            <div class="mb-3">
-                <input type="email" class="form-control" id="email" name="email" required placeholder="Email">
-            </div>
-            <div class="mb-3">
-                <input type="password" class="form-control" id="password" name="password" required placeholder="Mot de passe">
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Se connecter</button>
-        </form>
-        <a href="#" class="forgot-password">Mot de passe oublié ?</a>
+    <div class="background">
+        <div class="shape"></div>
+        <div class="shape"></div>
     </div>
+    <form action="{{ route('admin.login.submit') }}" method="POST">
+        @csrf
+        <h3>Login Here</h3>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <label for="username">Username</label>
+        <input type="text" placeholder="Email or Phone" id="username" name="email" required>
+
+        <label for="password">Password</label>
+        <input type="password" placeholder="Password" id="password" name="password" required>
+
+        <button type="submit">Log In</button>
+        <div class="social">
+    
+    </form>
 </body>
 </html>

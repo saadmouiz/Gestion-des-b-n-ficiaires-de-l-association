@@ -10,12 +10,18 @@ class Beneficiary extends Model
     use HasFactory;
 
     protected $fillable = [
-        'image_path',
         'cin',
         'nom',
         'prenom',
         'baccalaureat',
         'diplome_obtenu',
-        'pdf_path'
+        'pdf_path',
+        'image_path',
+        'folder_id',
     ];
+
+    public function folder()
+    {
+        return $this->belongsTo(Folder::class);
+    }
 }
